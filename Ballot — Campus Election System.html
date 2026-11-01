@@ -1,0 +1,1517 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title>Ballot — Online Voting System</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Courier+Prime:wght@400;700&display=swap"
+        rel="stylesheet">
+    <style>
+        /* Palette: coral #FF6082, blush #FFE4F5, violet #AE6BFF, indigo-blue #6B66FF, plus a deep indigo for ink. */
+        :root {
+            box-sizing: border-box;
+            padding-top: env(safe-area-inset-top, 0px);
+            padding-bottom: env(safe-area-inset-bottom, 0px);
+            --c1: #FF6082;
+            --c2: #FFE4F5;
+            --c3: #AE6BFF;
+            --c4: #6B66FF;
+            --bg: #FFE4F5;
+            --text: #231B4D;
+            --muted: #6B5F93;
+            --line: #EBB8D8;
+            --cell: #F7CDE6;
+            --hl: #FF6082;
+            --sh: 0 10px 30px rgba(107, 102, 255, .12), 0 1px 2px rgba(35, 27, 77, .06);
+            --onhl: #231B4D;
+            --sweep: #FF6082;
+            --g1: rgba(255, 255, 255, .88);
+            --g2: rgba(255, 255, 255, .58);
+            --gb: rgba(255, 255, 255, .85);
+            --plan: #fff;
+            --tabbg: rgba(255, 255, 255, .55);
+            --chk: #231B4D;
+            color-scheme: light
+        }
+
+        html {
+            scroll-padding-top: env(safe-area-inset-top, 0px)
+        }
+
+        * {
+            box-sizing: border-box
+        }
+
+        body {
+            margin: 0;
+            background: radial-gradient(620px 520px at 4% 22%, rgba(174, 107, 255, .50), transparent 70%), radial-gradient(560px 480px at 96% 12%, rgba(255, 96, 130, .42), transparent 70%), radial-gradient(720px 600px at 92% 92%, rgba(107, 102, 255, .45), transparent 70%), radial-gradient(520px 420px at 8% 96%, rgba(255, 96, 130, .32), transparent 70%), var(--bg) fixed;
+            color: var(--text);
+            font: 14.5px/1.5 Poppins, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+            min-height: 100vh;
+            font-variant-numeric: tabular-nums
+        }
+
+        .wrap {
+            max-width: 1160px;
+            margin: 0 auto;
+            padding: 28px 20px 64px
+        }
+
+        header {
+            display: flex;
+            align-items: flex-end;
+            gap: 14px;
+            margin-bottom: 34px;
+            flex-wrap: wrap
+        }
+
+        .mark {
+            font-size: 34px;
+            font-weight: 600;
+            letter-spacing: -.8px;
+            line-height: 1;
+            margin: 0;
+            position: relative;
+            display: inline-block;
+            padding: 0 4px;
+            z-index: 0
+        }
+
+        .mark::before {
+            content: "";
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: 2px;
+            height: 46%;
+            background: linear-gradient(90deg, var(--c1), var(--c3));
+            opacity: .85;
+            z-index: -1;
+            transform-origin: left;
+            animation: swipe .9s .15s cubic-bezier(.6, 0, .2, 1) both
+        }
+
+        @keyframes swipe {
+            from {
+                transform: scaleX(0)
+            }
+
+            to {
+                transform: scaleX(1)
+            }
+        }
+
+        header p {
+            margin: 0;
+            color: var(--muted);
+            font-size: 14px;
+            padding-bottom: 3px
+        }
+
+        .sp {
+            flex: 1
+        }
+
+        button,
+        input,
+        select {
+            font: inherit;
+            color: var(--text);
+            background: transparent;
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            padding: 9px 14px;
+            min-width: 0
+        }
+
+        select option {
+            background: var(--bg);
+            color: var(--text)
+        }
+
+        button {
+            cursor: pointer;
+            transition: border-color .15s, background .15s
+        }
+
+        button:hover {
+            border-color: var(--text)
+        }
+
+        button.p {
+            background: linear-gradient(90deg, var(--c3), var(--c4));
+            color: #fff;
+            border: 0;
+            font-weight: 600;
+            box-shadow: 0 8px 24px rgba(107, 102, 255, .5), 0 0 26px rgba(174, 107, 255, .35)
+        }
+
+        button.p:hover {
+            filter: brightness(1.07)
+        }
+
+        #reset {
+            border-radius: 99px;
+            background: var(--hl);
+            color: #231B4D;
+            border-color: var(--hl);
+            font-weight: 600
+        }
+
+        :focus-visible {
+            outline: 2px solid var(--text);
+            outline-offset: 2px
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-bottom: 22px
+        }
+
+        .stat {
+            background: linear-gradient(145deg, var(--g1), var(--g2));
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            border: 1px solid var(--gb);
+            border-radius: 16px;
+            padding: 16px 20px;
+            box-shadow: var(--sh)
+        }
+
+        .stat b {
+            background: linear-gradient(90deg, var(--c1), var(--c3), var(--c4));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            font-size: 48px;
+            line-height: 1;
+            font-weight: 600;
+            letter-spacing: -1px;
+            display: block
+        }
+
+        .stat span {
+            color: var(--muted);
+            font-size: 13.5px
+        }
+
+        @media(max-width:700px) {
+            .stats {
+                grid-template-columns: 1fr 1fr
+            }
+
+            .mark {
+                font-size: 30px
+            }
+        }
+
+        .layout {
+            display: grid;
+            grid-template-columns: 1.5fr 1fr;
+            gap: 22px
+        }
+
+        .col {
+            display: grid;
+            gap: 22px;
+            align-content: start
+        }
+
+        @media(max-width:860px) {
+            .layout {
+                grid-template-columns: 1fr
+            }
+        }
+
+        .sec,
+        .full {
+            background: linear-gradient(145deg, var(--g1), var(--g2));
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            border: 1px solid var(--gb);
+            border-radius: 18px;
+            padding: 22px 24px;
+            box-shadow: var(--sh)
+        }
+
+        .sec h2,
+        .full h2 {
+            font-size: 17px;
+            font-weight: 600;
+            margin: 0 0 14px;
+            display: flex;
+            align-items: baseline;
+            gap: 8px
+        }
+
+        h2 em {
+            margin-left: auto;
+            font-style: normal;
+            font-weight: 500;
+            font-size: 13px;
+            color: var(--muted)
+        }
+
+        .qa {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            padding: 12px 14px;
+            border-radius: 14px;
+            border: 1px solid rgba(107, 102, 255, .28);
+            background: linear-gradient(135deg, rgba(174, 107, 255, .16), rgba(255, 96, 130, .14))
+        }
+
+        .qa input {
+            flex: 1;
+            font-size: 17px;
+            padding: 8px 0;
+            border: 0;
+            border-radius: 0;
+            padding: 6px 0
+        }
+
+        .qa:focus-within {
+            border-color: var(--c4);
+            box-shadow: 0 0 0 3px rgba(107, 102, 255, .18)
+        }
+
+        .qa input:focus-visible {
+            outline: 0
+        }
+
+        .qa input::placeholder {
+            color: var(--muted)
+        }
+
+        .hint {
+            color: var(--muted);
+            font-size: 13px;
+            margin-top: 9px;
+            min-height: 20px
+        }
+
+        .hint b {
+            color: var(--text)
+        }
+
+        #plan {
+            background: var(--plan);
+            border-radius: 12px;
+            padding: 10px 16px 12px;
+            box-shadow: inset 0 0 0 1px rgba(107, 102, 255, .18), 0 6px 18px rgba(107, 102, 255, .12);
+            font-family: "Courier Prime", "Courier New", monospace;
+            font-size: 14px
+        }
+
+        #plan .m {
+            font-family: inherit
+        }
+
+        .seg {
+            display: flex;
+            height: 8px;
+            background: var(--cell);
+            margin: 2px 0 10px;
+            gap: 2px
+        }
+
+        .seg i {
+            display: block
+        }
+
+        .pl {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            padding: 10px 0;
+            border-top: 1px solid var(--line)
+        }
+
+        .pl .tm {
+            width: 50px;
+            color: var(--muted);
+            font-size: 13px
+        }
+
+        .dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 2px;
+            flex: none
+        }
+
+        .task {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            padding: 11px 0;
+            border-top: 1px solid var(--line)
+        }
+
+        .task.done .t {
+            text-decoration: line-through;
+            color: var(--muted)
+        }
+
+        .t {
+            flex: 1;
+            min-width: 0;
+            font-weight: 600
+        }
+
+        .m {
+            font-size: 13px;
+            color: var(--muted);
+            font-weight: 400;
+            display: flex;
+            gap: 4px 12px;
+            flex-wrap: wrap;
+            align-items: center
+        }
+
+        .pill {
+            font-size: 11.5px;
+            font-weight: 700;
+            padding: 0 8px;
+            border-radius: 3px;
+            border: 1px solid var(--muted);
+            color: var(--muted)
+        }
+
+        .pill.High {
+            background: var(--text);
+            color: var(--bg);
+            border-color: var(--text)
+        }
+
+        .pill.Medium {
+            color: var(--text);
+            border-color: var(--text)
+        }
+
+        .pill.Low {
+            border-style: dotted
+        }
+
+        .pill.risk,
+        .late {
+            background: var(--hl);
+            color: #231B4D;
+            border-color: var(--hl);
+            font-weight: 700
+        }
+
+        .late {
+            padding: 0 6px;
+            border-radius: 3px
+        }
+
+        input[type=checkbox] {
+            appearance: none;
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            flex: none;
+            padding: 0;
+            border: 1.5px solid var(--text);
+            border-radius: 4px;
+            cursor: pointer;
+            background: transparent center/14px no-repeat
+        }
+
+        input[type=checkbox]:checked {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 14 14'%3E%3Cpath d='M2.5 7.5l3 3 6-7' fill='none' stroke='%23231B4D' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"), linear-gradient(135deg, var(--c1), var(--c3));
+            background-size: 14px, 100%;
+            background-position: center, 0 0;
+            border-color: transparent
+        }
+
+        .x {
+            border: 0;
+            background: none;
+            color: var(--muted);
+            padding: 4px 8px
+        }
+
+        .x:hover {
+            color: var(--text)
+        }
+
+        .tabs {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            margin-bottom: 10px;
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            overflow: hidden;
+            background: var(--tabbg)
+        }
+
+        .tabs button {
+            border: 0;
+            border-radius: 0;
+            padding: 9px;
+            font-size: 14px
+        }
+
+        .tabs button+button {
+            border-left: 1px solid var(--line)
+        }
+
+        .tabs .on {
+            background: linear-gradient(90deg, var(--c3), var(--c4));
+            color: #fff;
+            font-weight: 600;
+            box-shadow: 0 0 18px rgba(107, 102, 255, .55)
+        }
+
+        .clockwrap {
+            position: relative;
+            display: inline-block;
+            margin: 6px 0 4px;
+            z-index: 0
+        }
+
+        .sweep {
+            position: absolute;
+            left: 0;
+            bottom: 8%;
+            height: 44%;
+            width: 0;
+            background: linear-gradient(90deg, var(--c3), var(--c1));
+            opacity: .8;
+            z-index: -1
+        }
+
+        .clock {
+            font-size: clamp(66px, 8.2vw, 104px);
+            font-weight: 700;
+            line-height: 1.02;
+            letter-spacing: -2px;
+            padding-right: 6px
+        }
+
+        .row {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-top: 10px
+        }
+
+        .heat {
+            display: grid;
+            grid-auto-flow: column;
+            grid-template-rows: repeat(7, 1fr);
+            gap: 3px
+        }
+
+        .heat i {
+            aspect-ratio: 1;
+            border-radius: 2px;
+            background: var(--cell);
+            min-width: 0
+        }
+
+        .heatw {
+            overflow-x: auto
+        }
+
+        .heat {
+            min-width: 420px
+        }
+
+        .bar {
+            height: 6px;
+            background: var(--cell);
+            margin: 5px 0 14px
+        }
+
+        .bar i {
+            display: block;
+            height: 100%
+        }
+
+        .empty {
+            color: var(--muted);
+            padding: 12px 0;
+            font-size: 14px;
+            border-top: 1px solid var(--line)
+        }
+
+        .full {
+            margin-top: 22px
+        }
+
+        .toast {
+            position: fixed;
+            left: 50%;
+            bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+            transform: translate(-50%, 30px);
+            opacity: 0;
+            background: var(--text);
+            color: var(--bg);
+            padding: 10px 18px;
+            border-radius: 10px;
+            font-weight: 600;
+            transition: .3s;
+            pointer-events: none
+        }
+
+        .toast.on {
+            opacity: 1;
+            transform: translate(-50%, 0)
+        }
+
+        kbd {
+            border: 1px solid var(--line);
+            border-radius: 4px;
+            padding: 0 6px;
+            font: inherit;
+            font-size: 12px
+        }
+
+        @media (prefers-reduced-motion:reduce) {
+            .mark::before {
+                animation: none
+            }
+
+            .toast {
+                transition: none
+            }
+        }
+
+        :root[data-theme=dark] {
+            --bg: #0c0e17;
+            --text: #eceefa;
+            --muted: #8d95b3;
+            --line: #262b40;
+            --cell: #1f2438;
+            --sh: 0 8px 28px rgba(0, 0, 0, .45);
+            --g1: rgba(28, 32, 52, .86);
+            --g2: rgba(18, 21, 36, .72);
+            --gb: #262b40;
+            --plan: #10131f;
+            --tabbg: rgba(255, 255, 255, .03);
+            color-scheme: dark;
+            --onhl: #0c0e17
+        }
+
+        :root[data-theme=dark] body {
+            background: radial-gradient(620px 520px at 4% 22%, rgba(174, 107, 255, .22), transparent 70%), radial-gradient(560px 480px at 96% 12%, rgba(255, 96, 130, .16), transparent 70%), radial-gradient(720px 600px at 92% 92%, rgba(107, 102, 255, .22), transparent 70%), var(--bg) fixed
+        }
+
+        :root[data-theme=dark] .stat b {
+            filter: saturate(1.1) brightness(1.1)
+        }
+
+        :root[data-theme=dark] #plan {
+            box-shadow: inset 0 0 0 1px var(--line)
+        }
+
+        :root[data-theme=dark] .qa {
+            background: linear-gradient(135deg, rgba(174, 107, 255, .14), rgba(255, 96, 130, .10));
+            border-color: rgba(139, 128, 255, .35)
+        }
+
+        :root[data-theme=dark] .pill.High {
+            background: var(--text);
+            color: var(--bg)
+        }
+
+        :root[data-theme=dark] select option {
+            background: #151826
+        }
+
+        /* ===== views ===== */
+        #app {
+            display: none
+        }
+
+        body.in-app #app {
+            display: block
+        }
+
+        body.in-app #landing {
+            display: none
+        }
+
+        header .home {
+            border-radius: 99px;
+            text-decoration: none;
+            color: var(--text);
+            border: 1px solid var(--line);
+            padding: 9px 14px;
+            font-size: 14px
+        }
+
+        header .home:hover {
+            border-color: var(--text)
+        }
+
+        #theme,
+        .lt {
+            border-radius: 99px;
+            width: 40px;
+            height: 40px;
+            padding: 0;
+            display: grid;
+            place-items: center;
+            font-size: 16px
+        }
+
+        /* ===== landing ===== */
+        #landing {
+            overflow-x: hidden
+        }
+
+        .lw {
+            max-width: 1160px;
+            margin: 0 auto;
+            padding: 0 20px
+        }
+
+        .nav {
+            display: flex;
+            align-items: center;
+            gap: 22px;
+            padding: 22px 0
+        }
+
+        .nav .mark {
+            font-size: 28px
+        }
+
+        .nav a.l {
+            color: var(--muted);
+            text-decoration: none;
+            font-size: 14px;
+            cursor: pointer
+        }
+
+        .nav a.l:hover {
+            color: var(--text)
+        }
+
+        .nav .sp {
+            flex: 1
+        }
+
+        .cta {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+            font-weight: 600;
+            color: #fff;
+            background: linear-gradient(90deg, var(--c3), var(--c4));
+            border-radius: 99px;
+            padding: 14px 26px;
+            font-size: 16px;
+            box-shadow: 0 10px 30px rgba(107, 102, 255, .5), 0 0 40px rgba(174, 107, 255, .35);
+            transition: transform .2s, filter .2s
+        }
+
+        .cta:hover {
+            transform: translateY(-2px);
+            filter: brightness(1.1)
+        }
+
+        .cta.sm {
+            padding: 10px 20px;
+            font-size: 14px
+        }
+
+        .cta .ar {
+            transition: transform .2s
+        }
+
+        .cta:hover .ar {
+            transform: translateX(4px)
+        }
+
+        .ghost {
+            color: var(--text);
+            text-decoration: none;
+            font-weight: 500;
+            padding: 14px 22px;
+            border: 1px solid var(--line);
+            border-radius: 99px;
+            cursor: pointer;
+            background: transparent;
+            font-size: 16px
+        }
+
+        .ghost:hover {
+            border-color: var(--text)
+        }
+
+        .hero {
+            display: grid;
+            grid-template-columns: 1.05fr 1fr;
+            gap: 48px;
+            align-items: center;
+            padding: 56px 0 80px
+        }
+
+        .badge {
+            display: inline-flex;
+            gap: 8px;
+            align-items: center;
+            font-size: 13px;
+            color: var(--muted);
+            border: 1px solid var(--line);
+            border-radius: 99px;
+            padding: 6px 14px;
+            background: var(--g2)
+        }
+
+        .badge i {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--c1);
+            box-shadow: 0 0 12px var(--c1)
+        }
+
+        .hero h1 {
+            font-size: clamp(40px, 6.4vw, 76px);
+            line-height: 1.02;
+            letter-spacing: -2.5px;
+            font-weight: 700;
+            margin: 22px 0 20px
+        }
+
+        .grad {
+            background: linear-gradient(90deg, var(--c1), var(--c3), var(--c4));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent
+        }
+
+        .hero p.lead {
+            font-size: 18px;
+            color: var(--muted);
+            max-width: 520px;
+            margin: 0 0 30px
+        }
+
+        .ctas {
+            display: flex;
+            gap: 14px;
+            flex-wrap: wrap;
+            align-items: center
+        }
+
+        .trust {
+            margin-top: 34px;
+            display: flex;
+            gap: 26px;
+            color: var(--muted);
+            font-size: 13px;
+            flex-wrap: wrap
+        }
+
+        .trust b {
+            display: block;
+            color: var(--text);
+            font-size: 22px;
+            letter-spacing: -.5px
+        }
+
+        .mock {
+            position: relative;
+        }
+
+        @keyframes float {
+            50% {
+                transform: translateY(-12px)
+            }
+        }
+
+        .mock::before {
+            content: "";
+            position: absolute;
+            inset: -30px;
+            background: radial-gradient(closest-side, rgba(174, 107, 255, .45), transparent);
+            filter: blur(30px);
+            z-index: -1
+        }
+
+        .glass {
+            background: linear-gradient(145deg, var(--g1), var(--g2));
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            border: 1px solid var(--gb);
+            border-radius: 20px;
+            padding: 22px;
+            box-shadow: var(--sh)
+        }
+
+        .mock .row2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-top: 14px
+        }
+
+        .mini b {
+            font-size: 34px;
+            font-weight: 600;
+            display: block;
+            line-height: 1
+        }
+
+        .mini span {
+            font-size: 12px;
+            color: var(--muted)
+        }
+
+        .mock .typed {
+            font-family: "Courier Prime", monospace;
+            font-size: 14px;
+            padding: 12px 14px;
+            border-radius: 12px;
+            border: 1px solid rgba(139, 128, 255, .4);
+            background: linear-gradient(135deg, rgba(174, 107, 255, .15), rgba(255, 96, 130, .1));
+            min-height: 46px
+        }
+
+        .caret {
+            display: inline-block;
+            width: 2px;
+            height: 1em;
+            background: var(--c1);
+            margin-left: 2px;
+            vertical-align: -2px;
+            animation: bl 1s steps(1) infinite
+        }
+
+        @keyframes bl {
+            50% {
+                opacity: 0
+            }
+        }
+
+        .chips {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            margin-top: 10px;
+            min-height: 26px
+        }
+
+        .chip {
+            font-size: 12px;
+            font-weight: 600;
+            padding: 3px 10px;
+            border-radius: 99px;
+            background: rgba(174, 107, 255, .2);
+            border: 1px solid rgba(174, 107, 255, .45);
+            animation: pop .35s both
+        }
+
+        @keyframes pop {
+            from {
+                opacity: 0;
+                transform: scale(.7)
+            }
+        }
+
+        .chip.c1 {
+            background: rgba(255, 96, 130, .2);
+            border-color: rgba(255, 96, 130, .5)
+        }
+
+        .sw {
+            display: flex;
+            gap: 2px;
+            height: 8px;
+            margin: 10px 0
+        }
+
+        .sw i {
+            display: block;
+            border-radius: 2px
+        }
+
+        .ln {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            font-size: 13px;
+            padding: 7px 0;
+            border-top: 1px solid var(--line)
+        }
+
+        .ln small {
+            color: var(--muted);
+            width: 42px
+        }
+
+        .ln .d {
+            width: 9px;
+            height: 9px;
+            border-radius: 2px
+        }
+
+        .marq {
+            border-block: 1px solid var(--line);
+            overflow: hidden;
+            padding: 16px 0;
+            background: var(--g2)
+        }
+
+        .marq div {
+            display: flex;
+            gap: 48px;
+            width: max-content;
+            animation: mq 28s linear infinite;
+            color: var(--muted);
+            font-size: 15px;
+            font-weight: 500
+        }
+
+        .marq span::before {
+            content: "✦";
+            color: var(--c1);
+            margin-right: 12px
+        }
+
+        @keyframes mq {
+            to {
+                transform: translateX(-50%)
+            }
+        }
+
+        section.s {
+            padding: 96px 0 0
+        }
+
+        .eyebrow {
+            color: var(--c1);
+            font-weight: 600;
+            font-size: 13px;
+            letter-spacing: 1.5px;
+            text-transform: uppercase
+        }
+
+        h2.big {
+            font-size: clamp(30px, 4.4vw, 52px);
+            letter-spacing: -1.5px;
+            line-height: 1.08;
+            margin: 10px 0 14px;
+            font-weight: 700
+        }
+
+        .sub {
+            color: var(--muted);
+            max-width: 560px;
+            font-size: 17px;
+            margin: 0
+        }
+
+        .fg {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 18px;
+            margin-top: 44px
+        }
+
+        .f {
+            transition: transform .25s, border-color .25s
+        }
+
+        .f:hover {
+            transform: translateY(-6px);
+            border-color: var(--c3)
+        }
+
+        .f .ic {
+            width: 46px;
+            height: 46px;
+            border-radius: 14px;
+            display: grid;
+            place-items: center;
+            font-size: 22px;
+            margin-bottom: 16px;
+            background: linear-gradient(135deg, rgba(255, 96, 130, .3), rgba(107, 102, 255, .3));
+            border: 1px solid var(--line)
+        }
+
+        .f h3 {
+            margin: 0 0 6px;
+            font-size: 18px
+        }
+
+        .f p {
+            margin: 0;
+            color: var(--muted);
+            font-size: 14.5px
+        }
+
+        .steps {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 18px;
+            margin-top: 44px
+        }
+
+        .step .n {
+            font-size: 64px;
+            font-weight: 700;
+            line-height: 1;
+            letter-spacing: -3px;
+            margin-bottom: 10px
+        }
+
+        .step h3 {
+            margin: 0 0 6px
+        }
+
+        .step p {
+            margin: 0;
+            color: var(--muted);
+            font-size: 14.5px
+        }
+
+        .final {
+            margin: 96px 0 0;
+            text-align: center;
+            padding: 64px 24px;
+            border-radius: 28px;
+            background: linear-gradient(135deg, rgba(174, 107, 255, .28), rgba(255, 96, 130, .22) 55%, rgba(107, 102, 255, .28));
+            border: 1px solid var(--gb);
+            position: relative;
+            overflow: hidden
+        }
+
+        .final h2 {
+            font-size: clamp(30px, 4.6vw, 56px);
+            letter-spacing: -1.8px;
+            margin: 0 0 14px;
+            line-height: 1.05
+        }
+
+        .final p {
+            color: var(--muted);
+            margin: 0 auto 28px;
+            max-width: 480px;
+            font-size: 17px
+        }
+
+        footer.lf {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            flex-wrap: wrap;
+            color: var(--muted);
+            font-size: 13px;
+            padding: 36px 0 44px
+        }
+
+        .rv {
+            opacity: 0;
+            transform: translateY(28px);
+            transition: opacity .7s, transform .7s
+        }
+
+        .rv.in {
+            opacity: 1;
+            transform: none
+        }
+
+        @media(max-width:900px) {
+            .hero {
+                grid-template-columns: 1fr;
+                padding-top: 24px
+            }
+
+            .fg,
+            .steps {
+                grid-template-columns: 1fr 1fr
+            }
+
+            .nav a.l {
+                display: none
+            }
+        }
+
+        @media(max-width:600px) {
+
+            .fg,
+            .steps {
+                grid-template-columns: 1fr
+            }
+
+            .mock {
+                animation: none
+            }
+        }
+
+        @media (prefers-reduced-motion:reduce) {
+
+            .mock,
+            .marq div,
+            .caret {
+                animation: none
+            }
+
+            .rv {
+                opacity: 1;
+                transform: none;
+                transition: none
+            }
+        }
+
+        .cand {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            padding: 12px 14px;
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            cursor: pointer;
+            background: var(--g2);
+            transition: .15s
+        }
+
+        .cand:hover {
+            border-color: var(--c3)
+        }
+
+        .cand:has(input:checked) {
+            border-color: var(--c3);
+            background: rgba(174, 107, 255, .18);
+            box-shadow: 0 0 0 3px rgba(174, 107, 255, .15)
+        }
+
+        .cand input {
+            accent-color: var(--c3);
+            width: 18px;
+            height: 18px;
+            margin: 0
+        }
+
+        .av {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--c1), var(--c3));
+            display: grid;
+            place-items: center;
+            font-weight: 700;
+            color: #fff;
+            flex: none
+        }
+
+        .fi {
+            width: 100%;
+            margin-bottom: 10px;
+            background: var(--g2)
+        }
+
+        .rc {
+            font-family: "Courier Prime", monospace;
+            font-size: 34px;
+            font-weight: 700;
+            letter-spacing: 3px;
+            margin: 10px 0 4px
+        }
+
+        .scroll {
+            max-height: 260px;
+            overflow: auto
+        }
+
+        .cand.s {
+            cursor: default
+        }
+
+        .ic {
+            font-family: "Courier Prime", monospace;
+            font-weight: 700;
+            font-size: 16px;
+            color: var(--c1)
+        }
+
+        .tg {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-top: 36px
+        }
+
+        .tm2 {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            gap: 12px;
+            padding: 26px 16px
+        }
+
+        .tm2 .av {
+            width: 56px;
+            height: 56px;
+            font-size: 22px
+        }
+
+        .tm2 p {
+            margin: 0;
+            font-weight: 600;
+            font-size: 15px
+        }
+
+        @media(max-width:900px) {
+            .tg {
+                grid-template-columns: 1fr 1fr
+            }
+        }
+
+        @media(max-width:480px) {
+            .tg {
+                grid-template-columns: 1fr
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div id="landing">
+        <div class="lw" id="top">
+            <nav class="nav"><span class="mark">Ballot</span><a class="l" data-s="features">Features</a><a class="l"
+                    data-s="how">How it works</a><a class="l" data-s="team">Team</a><span class="sp"></span><button
+                    id="theme2" class="lt" aria-label="Toggle theme">🌓</button><a class="cta sm" href="#app">Go vote
+                    <span class="ar">→</span></a></nav>
+            <div class="hero">
+                <div><span class="badge"><i></i>Online Voting System · college project</span>
+                    <h1>A fair college election,<br>run <span class="grad">online.</span></h1>
+                    <p class="lead">Ballot is our college project: a voting system where every student votes once, in
+                        secret, and results stay hidden until the polls close. It is a working prototype, so go ahead
+                        and try it.</p>
+                    <div class="ctas"><a class="cta" href="#app">Get into voting <span class="ar">→</span></a><a
+                            class="ghost" data-s="features">How it stays fair</a></div>
+                    <p class="m" style="margin-top:30px;line-height:1.8">Try it: voter <b
+                            style="color:var(--text)">V1001</b> / vote123 &nbsp;·&nbsp; admin <b
+                            style="color:var(--text)">anushka</b> / admin123</p>
+                </div>
+                <div class="mock">
+                    <div class="glass"><b>President</b>
+                        <div style="display:grid;gap:8px;margin:10px 0 14px">
+                            <div class="cand s" style="border-color:var(--c3);background:rgba(174,107,255,.18)"><span
+                                    class="av">A</span><b>Aarav Mehta</b><span class="chip"
+                                    style="margin-left:auto">Your pick</span></div>
+                            <div class="cand s"><span class="av">D</span><b>Diya Nair</b></div>
+                        </div>
+                        <div class="glass mini" style="text-align:center"><span>Sample receipt after voting</span>
+                            <div class="rc grad">BAL-7K3Q9F</div>
+                        </div>
+                        <div class="m" style="margin-top:14px;justify-content:space-between">
+                            <span>Turnout</span><span>68%</span></div>
+                        <div class="bar"><i style="width:68%;background:linear-gradient(90deg,var(--c1),var(--c3))"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="lw">
+            <section class="s" id="features">
+                <div class="rv">
+                    <div class="eyebrow">The four rules we followed</div>
+                    <h2 class="big">What it does</h2>
+                    <p class="sub">Only eligible people vote, only once, in secret, and nobody can quietly change the
+                        result.</p>
+                </div>
+                <div class="fg">
+                    <div class="glass f rv">
+                        <div class="ic">01</div>
+                        <h3>Eligible voters only</h3>
+                        <p>Only IDs on the approved roll can log in. Everyone else is turned away at the door.</p>
+                    </div>
+                    <div class="glass f rv">
+                        <div class="ic">02</div>
+                        <h3>One person, one vote</h3>
+                        <p>The moment a ballot is cast, that Voter ID is locked. No second tries.</p>
+                    </div>
+                    <div class="glass f rv">
+                        <div class="ic">03</div>
+                        <h3>Secret ballot</h3>
+                        <p>Choices are stored apart from voter records, so nobody can trace a vote to a person.</p>
+                    </div>
+                    <div class="glass f rv">
+                        <div class="ic">04</div>
+                        <h3>Receipt codes</h3>
+                        <p>Every voter gets a unique receipt code as proof their ballot was sealed.</p>
+                    </div>
+                    <div class="glass f rv">
+                        <div class="ic">05</div>
+                        <h3>Live turnout, sealed results</h3>
+                        <p>Watch turnout in real time. Results stay hidden until the admin closes the polls.</p>
+                    </div>
+                    <div class="glass f rv">
+                        <div class="ic">06</div>
+                        <h3>Audit log</h3>
+                        <p>Every poll event is recorded: opened, closed, ballots cast. Never the choices.</p>
+                    </div>
+                </div>
+            </section>
+            <section class="s" id="how">
+                <div class="rv">
+                    <div class="eyebrow">How it works</div>
+                    <h2 class="big">How an election runs</h2>
+                </div>
+                <div class="steps">
+                    <div class="step rv">
+                        <div class="n grad">01</div>
+                        <h3>Admin sets up</h3>
+                        <p>Add posts, candidates and the voter roll, then open the polls.</p>
+                    </div>
+                    <div class="step rv">
+                        <div class="n grad">02</div>
+                        <h3>Voters cast</h3>
+                        <p>Log in, pick one candidate per post, review and lock the ballot.</p>
+                    </div>
+                    <div class="step rv">
+                        <div class="n grad">03</div>
+                        <h3>Results unseal</h3>
+                        <p>When the admin closes polls, winners and vote counts appear.</p>
+                    </div>
+                </div>
+            </section>
+            <section class="s" id="team">
+                <div class="rv">
+                    <div class="eyebrow">The team</div>
+                    <h2 class="big">Built by</h2>
+                    <p class="sub">Four of us built Ballot as a college project.</p>
+                </div>
+                <div class="tg">
+                    <div class="glass tm2 rv"><span class="av">A</span>
+                        <p>Anushka Sharad Pakhale</p>
+                    </div>
+                    <div class="glass tm2 rv"><span class="av">A</span>
+                        <p>Arushri Nagrale</p>
+                    </div>
+                    <div class="glass tm2 rv"><span class="av">S</span>
+                        <p>Snehal Gondchavar</p>
+                    </div>
+                    <div class="glass tm2 rv"><span class="av">S</span>
+                        <p>Shravani Sange</p>
+                    </div>
+                </div>
+            </section>
+            <div class="final rv">
+                <h2>Go on, try it.</h2>
+                <p>The demo logins are on the login screen. Try it as a voter, then as the admin.</p><a class="cta"
+                    href="#app">Get into voting <span class="ar">→</span></a>
+            </div>
+            <footer class="lf"><span>© Ballot · Online Voting System</span><span>College project prototype. Not for real
+                    elections.</span></footer>
+        </div>
+    </div>
+    <div id="app">
+        <div class="wrap">
+            <header>
+                <h1 class="mark">Ballot</h1>
+                <p>Secure online voting</p>
+                <div class="sp"></div><a class="home" href="#top">← Home</a><button id="theme" class="lt"
+                    aria-label="Toggle theme">🌓</button><button id="out" hidden>Log out</button>
+            </header>
+            <div id="main"></div>
+            <div class="m" style="margin-top:28px">Demo mode: all data lives in this browser and is not secure.</div>
+        </div>
+        <div class="toast" id="toast"></div>
+    </div>
+    <script>
+        const K = "ballot-v2", $ = i => document.getElementById(i), esc = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+        const NM = "Aarav Diya Kabir Meera Rohan Isha Vivaan Anaya Arjun Sara Dev Kiara Neil Tara Yash Riya Ishaan Myra Karan Zoya Aditya Naina Veer Pooja Rahul Sneha Om Tanvi Samar Aisha Harsh Pari Krish Nisha Manav Leela Rudra Esha Jay Kavya".split(" ");
+        const now = () => new Date().toLocaleString();
+        const seed = () => ({
+            voters: [...["Arushri Nagrale", "Snehal Gondchavar", "Shravani Sange"], ...NM.slice(0, 37).map((n, i) => n + " " + ["Shah", "Rao", "Iyer", "Khan", "Patil"][i % 5])].map((n, i) => ({ id: "V" + (1001 + i), name: n, pw: "vote123", voted: false })),
+            positions: [{ id: "p1", title: "President", cands: [{ id: "c1", name: "Aarav Mehta", bio: "Better labs and a 24/7 library." }, { id: "c2", name: "Diya Nair", bio: "Open budgets, student-run events." }, { id: "c3", name: "Kabir Sethi", bio: "Placement support for every branch." }] },
+            { id: "p2", title: "Secretary", cands: [{ id: "c4", name: "Meera Joshi", bio: "One app for every notice." }, { id: "c5", name: "Rohan Das", bio: "Faster club approvals." }] },
+            { id: "p3", title: "Treasurer", cands: [{ id: "c6", name: "Isha Verma", bio: "Public monthly spending reports." }, { id: "c7", name: "Vivaan Roy", bio: "Sponsorships for more fests." }] }], votes: [], status: "upcoming", log: [{ t: now(), m: "Election created" }]
+        });
+        let S = null; try { S = JSON.parse(localStorage.getItem(K)) } catch (e) { } if (!S) S = seed();
+        const save = () => { try { localStorage.setItem(K, JSON.stringify(S)) } catch (e) { } };
+        const toast = m => { const t = $("toast"); t.textContent = m; t.classList.add("on"); setTimeout(() => t.classList.remove("on"), 2400) };
+        let U = null, pend = null, rcpt = null;
+        const nm = (p, c) => c == "nota" ? "None of the above" : S.positions.find(x => x.id == p).cands.find(x => x.id == c).name;
+        const log = m => S.log.unshift({ t: now(), m });
+        function res() {
+            return S.positions.map(p => {
+                const vs = S.votes.filter(v => v.pos == p.id), tot = vs.length || 1;
+                const rows = [...p.cands, { id: "nota", name: "None of the above" }].map(c => ({ c, n: vs.filter(v => v.cand == c.id).length })), top = Math.max(...rows.map(r => r.n));
+                return `<div style="margin-bottom:16px"><b>${esc(p.title)}</b>` + rows.map(r => `<div class="m" style="justify-content:space-between;margin-top:8px"><span>${esc(r.c.name)} ${r.n == top && top > 0 && r.c.id != "nota" ? '<span class="pill risk">Winner</span>' : ""}</span><span>${r.n} votes</span></div><div class="bar"><i style="width:${r.n / tot * 100}%;background:linear-gradient(90deg,var(--c1),var(--c3))"></i></div>`).join("") + `</div>`
+            }).join("")
+        }
+        const loginV = () => `<div class="sec" style="max-width:440px;margin:30px auto"><h2>Log in to vote</h2><input class="fi" id="lid" placeholder="Voter ID" autocomplete="off"><input class="fi" id="lpw" type="password" placeholder="Password"><button class="p" data-a="login" style="width:100%">Log in</button>
+<div class="hint">Demo voters (password <b>vote123</b>):<br><b>V1001</b> Arushri Nagrale · <b>V1002</b> Snehal Gondchavar · <b>V1003</b> Shravani Sange<br>Other IDs up to V1040 are fake voters.<br>Demo admin: <b>anushka</b> / <b>admin123</b> (Anushka Pakhale)</div></div>`;
+        function voterV() {
+            const v = S.voters.find(x => x.id == U.id); let b;
+            if (S.status == "closed") b = `<div class="sec"><h2>Final results</h2>${res()}</div>`;
+            else if (v.voted) b = `<div class="sec"><h2>Vote locked ✓</h2><div class="m">Thanks, ${esc(v.name)}. Your ballot is sealed and cannot be changed. Results appear when the polls close.</div>${rcpt ? `<div class="rc grad">${rcpt}</div><div class="m">Your receipt code. Keep it safe; it is shown only once.</div>` : ""}</div>`;
+            else if (S.status == "upcoming") b = `<div class="sec"><h2>Polls not open yet</h2><div class="m">The election officer has not opened voting. Check back soon.</div></div>`;
+            else if (pend) b = `<div class="sec"><h2>Review your ballot</h2>${S.positions.map(p => `<div class="pl"><span class="tm" style="width:90px">${esc(p.title)}</span><div class="t">${esc(nm(p.id, pend[p.id]))}</div></div>`).join("")}<div class="row"><button data-a="back">Back</button><button class="p" data-a="cast">Confirm &amp; lock my vote</button></div><div class="hint">You cannot change your vote after this.</div></div>`;
+            else b = `<div class="sec"><h2>Your ballot <em>one choice per post</em></h2>` + S.positions.map(p => `<div style="margin-bottom:18px"><b>${esc(p.title)}</b><div style="display:grid;gap:10px;margin-top:8px">` + [...p.cands, { id: "nota", name: "None of the above", bio: "Abstain for this post." }].map(c => `<label class="cand"><input type="radio" name="${p.id}" value="${c.id}"><span class="av">${esc(c.name[0])}</span><span><b>${esc(c.name)}</b><div class="m">${esc(c.bio || "")}</div></span></label>`).join("") + `</div></div>`).join("") + `<button class="p" data-a="review">Review ballot</button></div>`;
+            return `<div class="stats" style="grid-template-columns:1fr 1fr"><div class="stat"><b>${esc(v.id)}</b><span>${esc(v.name)}</span></div><div class="stat"><b style="font-size:34px;padding-top:8px">${S.status == "open" ? "Open" : S.status == "closed" ? "Closed" : "Soon"}</b><span>Poll status · ${v.voted ? "you have voted" : "not voted yet"}</span></div></div>` + b
+        }
+        function adminV() {
+            const n = S.voters.length, d = S.voters.filter(v => v.voted).length, pc = n ? Math.round(d / n * 100) : 0, up = S.status == "upcoming";
+            return `<div class="m" style="margin-bottom:14px">Logged in as admin: <b style="color:var(--text)">${esc(U.name)}</b></div><div class="stats"><div class="stat"><b>${n}</b><span>Registered</span></div><div class="stat"><b>${d}</b><span>Voted</span></div><div class="stat"><b>${pc}%</b><span>Turnout</span></div><div class="stat"><b style="font-size:34px;padding-top:8px">${S.status}</b><span>Poll status</span></div></div>
+<div class="layout"><div class="col"><div class="sec"><h2>Poll control</h2><div class="bar"><i style="width:${pc}%;background:linear-gradient(90deg,var(--c1),var(--c3))"></i></div><div class="row">${S.status == "upcoming" ? '<button class="p" data-a="open">Open polls</button>' : ""}${S.status == "open" ? '<button class="p" data-a="close">Close polls &amp; reveal</button>' : ""}<button data-a="reset">Reset demo data</button></div></div>
+<div class="sec"><h2>Results <em>${S.status == "closed" ? "final" : "sealed"}</em></h2>${S.status == "closed" ? res() : '<div class="empty">Hidden until the polls close, so nobody can see a partial count.</div>'}</div>
+<div class="sec"><h2>Audit log <em>no choices recorded</em></h2><div class="scroll">${S.log.map(l => `<div class="pl"><span class="m" style="width:150px">${esc(l.t)}</span><div class="t" style="font-weight:500">${esc(l.m)}</div></div>`).join("")}</div></div></div>
+<div class="col"><div class="sec"><h2>Candidates ${up ? "" : "<em>locked</em>"}</h2>${S.positions.map(p => `<b>${esc(p.title)}</b>` + p.cands.map(c => `<div class="task"><span class="av" style="width:30px;height:30px">${esc(c.name[0])}</span><div class="t">${esc(c.name)}</div>${up ? `<button class="x" data-a="rc" data-d="${p.id}|${c.id}" aria-label="Remove">✕</button>` : ""}</div>`).join("")).join("")}
+${up ? `<div style="margin-top:14px"><select id="cp" class="fi">${S.positions.map(p => `<option value="${p.id}">${esc(p.title)}</option>`).join("")}</select><input class="fi" id="cn" placeholder="Candidate name"><input class="fi" id="cb" placeholder="One-line manifesto"><button class="p" data-a="ac">Add candidate</button></div>` : ""}</div>
+<div class="sec"><h2>Voter roll <em>status only</em></h2>${up ? `<div class="qa" style="margin-bottom:10px"><input id="vn" placeholder="New voter name"><button class="p" data-a="av">Add</button></div>` : ""}<div class="scroll">${S.voters.map(v => `<div class="pl"><span class="tm">${v.id}</span><div class="t" style="font-weight:500">${esc(v.name)}</div><span class="pill ${v.voted ? "Medium" : ""}">${v.voted ? "Voted" : "Pending"}</span></div>`).join("")}</div></div></div></div>`
+        }
+        function render() { $("out").hidden = !U; $("main").innerHTML = !U ? loginV() : U.role == "admin" ? adminV() : voterV() }
+        function login() {
+            const id = $("lid").value.trim(), pw = $("lpw").value;
+            if (id.toLowerCase() == "anushka" && pw == "admin123") U = { role: "admin", name: "Anushka Pakhale" };
+            else { const v = S.voters.find(x => x.id.toLowerCase() == id.toLowerCase() && x.pw == pw); if (!v) return toast("Invalid Voter ID or password"); U = { role: "voter", id: v.id } }
+            pend = rcpt = null; render()
+        }
+        $("main").onkeydown = e => { if (e.key == "Enter" && e.target.id == "lpw") login() };
+        $("main").onclick = e => {
+            const b = e.target.closest("[data-a]"); if (!b) return; const a = b.dataset.a, d = b.dataset.d;
+            if (a == "login") return login();
+            if (a == "review") { const o = {}; for (const p of S.positions) { const r = document.querySelector(`input[name=${p.id}]:checked`); if (!r) return toast("Choose an option for " + p.title); o[p.id] = r.value } pend = o }
+            if (a == "back") pend = null;
+            if (a == "cast") {
+                const v = S.voters.find(x => x.id == U.id); if (v.voted || S.status != "open") return toast("Voting not allowed");
+                S.positions.forEach(p => S.votes.push({ pos: p.id, cand: pend[p.id] })); v.voted = true;
+                rcpt = "BAL-" + Math.random().toString(36).slice(2, 8).toUpperCase(); pend = null; log("A ballot was cast"); save(); toast("Vote locked")
+            }
+            if (a == "open") { if (S.positions.some(p => !p.cands.length)) return toast("Every post needs a candidate"); S.status = "open"; log("Polls opened"); save() }
+            if (a == "close") { S.status = "closed"; log("Polls closed, results revealed"); save() }
+            if (a == "reset") { S = seed(); rcpt = null; save(); toast("Demo data reset") }
+            if (a == "rc") { const [p, c] = d.split("|"), ps = S.positions.find(x => x.id == p); ps.cands = ps.cands.filter(x => x.id != c); save() }
+            if (a == "ac") { const n = $("cn").value.trim(); if (!n) return toast("Enter a name"); S.positions.find(x => x.id == $("cp").value).cands.push({ id: "c" + Date.now(), name: n, bio: $("cb").value.trim() }); save() }
+            if (a == "av") { const n = $("vn").value.trim(); if (!n) return toast("Enter a name"); S.voters.push({ id: "V" + (1001 + S.voters.length), name: n, pw: "vote123", voted: false }); log("Voter added to roll"); save() }
+            render()
+        };
+        $("out").onclick = () => { U = pend = rcpt = null; render() };
+        (function () {
+            const r = document.documentElement; let t = "dark"; try { t = localStorage.getItem("ballot-theme") || "dark" } catch (e) { } r.dataset.theme = t;
+            const flip = () => { t = r.dataset.theme == "dark" ? "light" : "dark"; r.dataset.theme = t; try { localStorage.setItem("ballot-theme", t) } catch (e) { } };
+            $("theme").onclick = $("theme2").onclick = flip;
+            const route = () => { const a = location.hash == "#app"; document.body.classList.toggle("in-app", a); window.scrollTo(0, 0); document.title = a ? "Ballot · Election" : "Ballot — Online Voting System" };
+            addEventListener("hashchange", route); route();
+            document.querySelectorAll("[data-s]").forEach(a => a.onclick = () => $(a.dataset.s).scrollIntoView({ behavior: "smooth" }));
+            const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target) } }), { threshold: .15 });
+            document.querySelectorAll(".rv").forEach((e, i) => { e.style.transitionDelay = (i % 3) * 90 + "ms"; io.observe(e) })
+        })();
+        render();
+    </script>
+</body>
+
+</html>
